@@ -2,7 +2,7 @@
 #define MINISQL_TXN_H
 
 #include <thread>
-#include <unordered_set>
+#include <unordered_set
 
 #include "common/macros.h"
 #include "common/rowid.h"
@@ -16,11 +16,11 @@ enum class IsolationLevel { kReadUncommitted, kReadCommitted, kRepeatedRead };
  * Reason to a transaction abortion
  */
 enum class AbortReason {
-  kLockOnShrinking,
-  kUnlockOnShrinking,
-  kUpgradeConflict,
-  kDeadlock,
-  kLockSharedOnReadUncommitted
+kLockOnShrinking,
+kUnlockOnShrinking,
+kUpgradeConflict,
+kDeadlock,
+kLockSharedOnReadUncommitted
 };
 
 /**

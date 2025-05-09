@@ -10,7 +10,9 @@ class TableHeap;
 class TableIterator {
 public:
  // you may define your own constructor based on your member variables
- explicit TableIterator(TableHeap *table_heap, RowId rid, Txn *txn);
+ explicit TableIterator(TableHeap *table_heap, RowId rid);
+
+ explicit TableIterator(TableHeap *table_heap, RowId rid, Txn *txn, bool is_end);
 
  explicit TableIterator(const TableIterator &other);
 
@@ -31,6 +33,11 @@ public:
   TableIterator operator++(int);
 
 private:
+  TableHeap *table_heap_;
+  RowId rid_;
+  Txn *txn_;
+  bool is_end_;
+  Row current_row_;
   // add your own private member variables here
 };
 

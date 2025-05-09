@@ -1,4 +1,5 @@
 #include "buffer/lru_replacer.h"
+#include <algorithm>
 using namespace std;
 
 LRUReplacer::LRUReplacer(size_t num_pages){}

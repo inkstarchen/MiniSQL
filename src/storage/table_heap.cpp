@@ -3,7 +3,20 @@
 /**
  * TODO: Student Implement
  */
-bool TableHeap::InsertTuple(Row &row, Txn *txn) { return false; }
+bool TableHeap::InsertTuple(Row &row, Txn *txn) {
+  uint32_t serialized_size = row.GetSerializedSize(schema_);
+  if (serialized_size > PAGE_SIZE) {
+    return false;
+  }
+  auto page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(row.GetRowId().GetPageId()));
+  if(page == nullptr){
+    return false;
+  }
+  page->WLatch();
+  page->InsertTuple(row, schema_, txn, lock_manager_, log_manager_);
+  page->WUnlatch();
+  buffer_pool_manager_->UnpinPage(page->GetTablePageId(), true);
+  return true; }
 
 bool TableHeap::MarkDelete(const RowId &rid, Txn *txn) {
   // Find the page which contains the tuple.
@@ -23,14 +36,33 @@ bool TableHeap::MarkDelete(const RowId &rid, Txn *txn) {
 /**
  * TODO: Student Implement
  */
-bool TableHeap::UpdateTuple(Row &row, const RowId &rid, Txn *txn) { return false; }
-
+bool TableHeap::UpdateTuple(Row &row, const RowId &rid, Txn *txn) {  
+  auto page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(rid.GetPageId()));
+  if(page == nullptr){
+    return false;
+  }
+  Row *old_row = new Row(rid);
+  GetTuple(old_row, txn);
+  // Rollback to delete.
+  page->WLatch();
+  page->UpdateTuple(row, old_row, schema_, txn, lock_manager_ ,log_manager_);
+  page->WUnlatch();
+  buffer_pool_manager_->UnpinPage(page->GetTablePageId(), true);
+  return true;
+}
 /**
  * TODO: Student Implement
  */
 void TableHeap::ApplyDelete(const RowId &rid, Txn *txn) {
   // Step1: Find the page which contains the tuple.
   // Step2: Delete the tuple from the page.
+  auto page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(rid.GetPageId()));
+  assert(page != nullptr);
+  page->WLatch();
+  page->ApplyDelete(rid, txn,log_manager_);
+  page->WUnlatch();
+  buffer_pool_manager_->UnpinPage(page->GetTablePageId(), true);
+  
 }
 
 void TableHeap::RollbackDelete(const RowId &rid, Txn *txn) {
@@ -47,7 +79,17 @@ void TableHeap::RollbackDelete(const RowId &rid, Txn *txn) {
 /**
  * TODO: Student Implement
  */
-bool TableHeap::GetTuple(Row *row, Txn *txn) { return false; }
+bool TableHeap::GetTuple(Row *row, Txn *txn) {
+  auto page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(row->GetRowId().GetPageId()));
+  if(page == nullptr){
+    return false;
+  }
+  page->RLatch();
+  page->GetTuple(row,schema_, txn, lock_manager_);
+  page->RUnlatch();
+  buffer_pool_manager_->UnpinPage(page->GetTablePageId(), true);
+  return true;
+}
 
 void TableHeap::DeleteTable(page_id_t page_id) {
   if (page_id != INVALID_PAGE_ID) {
@@ -64,9 +106,16 @@ void TableHeap::DeleteTable(page_id_t page_id) {
 /**
  * TODO: Student Implement
  */
-TableIterator TableHeap::Begin(Txn *txn) { return TableIterator(nullptr, RowId(), nullptr); }
+TableIterator TableHeap::Begin(Txn *txn) {
+  auto page = reinterpret_cast<TablePage *>(buffer_pool_manager_->FetchPage(this->GetFirstPageId()));
+  RowId rid_;
+  page->GetFirstTupleRid(&rid_);
+  return TableIterator(this, rid_ , txn, false);
+}
 
 /**
  * TODO: Student Implement
  */
-TableIterator TableHeap::End() { return TableIterator(nullptr, RowId(), nullptr); }
+TableIterator TableHeap::End() { 
+  return TableIterator(this,INVALID_ROWID);
+}
