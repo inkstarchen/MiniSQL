@@ -32,14 +32,15 @@ uint32_t Row::DeserializeFrom(char *buf, Schema *schema) {
   uint32_t slot_num = MACH_READ_UINT32(buf + size);
   size += sizeof(uint32_t);
   rid_.Set(page_id,slot_num);
+  std::cout << schema->GetColumnCount() << std::endl;
   for(uint32_t i = 0; i < schema->GetColumnCount(); i++){
     bool is_null = MACH_READ_FROM(bool, buf + size);
     size += sizeof(bool);
     TypeId type = MACH_READ_FROM(TypeId ,buf + size);
     size += sizeof(TypeId);
-    Field ** field = nullptr;
-    size += (*field)->DeserializeFrom(buf + size, type, field, is_null);
-    fields_.emplace_back(*field);
+    Field * field =  new Field(type);
+    size += field->DeserializeFrom(buf + size, type, &field, is_null);
+    fields_.emplace_back(field);
   }
   return size;
 }

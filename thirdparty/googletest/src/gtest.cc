@@ -845,6 +845,7 @@ namespace internal {
 // return the same value, as it always calls GetTypeId<>() from the
 // gtest.cc, which is within the Google Test framework.
 TypeId GetTestTypeId() {
+  
   return GetTypeId<Test>();
 }
 

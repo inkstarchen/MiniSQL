@@ -2,7 +2,7 @@
 #define MINISQL_TXN_H
 
 #include <thread>
-#include <unordered_set
+#include <unordered_set>
 
 #include "common/macros.h"
 #include "common/rowid.h"

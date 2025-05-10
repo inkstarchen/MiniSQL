@@ -13,6 +13,7 @@ public:
  explicit TableIterator(TableHeap *table_heap, RowId rid);
 
  explicit TableIterator(TableHeap *table_heap, RowId rid, Txn *txn, bool is_end);
+ explicit TableIterator(TableHeap *table_heap, RowId rid, Txn *txn);
 
  explicit TableIterator(const TableIterator &other);
 

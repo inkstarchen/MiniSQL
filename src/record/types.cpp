@@ -85,6 +85,7 @@ uint32_t TypeInt::SerializeTo(const Field &field, char *buf) const {
 }
 
 uint32_t TypeInt::DeserializeFrom(char *storage, Field **field, bool is_null) const {
+  
   if (is_null) {
     *field = new Field(TypeId::kTypeInt);
     return 0;

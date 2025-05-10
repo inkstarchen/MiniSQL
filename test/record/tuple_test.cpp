@@ -40,6 +40,7 @@ TEST(TupleTest, FieldSerializeDeserializeTest) {
   for (int i = 0; i < 4; i++) {
     p += char_fields[i].SerializeTo(p);
   }
+  
   // Deserialize phase
   uint32_t ofs = 0;
   Field *df = nullptr;
@@ -73,9 +74,11 @@ TEST(TupleTest, FieldSerializeDeserializeTest) {
     delete df;
     df = nullptr;
   }
+  
 }
 
 TEST(TupleTest, RowTest) {
+  
   TablePage table_page;
   // create schema
   std::vector<Column *> columns = {new Column("id", TypeId::kTypeInt, 0, false, false),
@@ -84,13 +87,16 @@ TEST(TupleTest, RowTest) {
   std::vector<Field> fields = {Field(TypeId::kTypeInt, 188),
                                Field(TypeId::kTypeChar, const_cast<char *>("minisql"), strlen("minisql"), false),
                                Field(TypeId::kTypeFloat, 19.99f)};
+  
   auto schema = std::make_shared<Schema>(columns);
   Row row(fields);
   table_page.Init(0, INVALID_PAGE_ID, nullptr, nullptr);
   table_page.InsertTuple(row, schema.get(), nullptr, nullptr, nullptr);
+  
   RowId first_tuple_rid;
   ASSERT_TRUE(table_page.GetFirstTupleRid(&first_tuple_rid));
   ASSERT_EQ(row.GetRowId(), first_tuple_rid);
+  
   Row row2(row.GetRowId());
   ASSERT_TRUE(table_page.GetTuple(&row2, schema.get(), nullptr, nullptr));
   std::vector<Field *> &row2_fields = row2.GetFields();
@@ -98,6 +104,7 @@ TEST(TupleTest, RowTest) {
   for (size_t i = 0; i < row2_fields.size(); i++) {
     ASSERT_EQ(CmpBool::kTrue, row2_fields[i]->CompareEquals(fields[i]));
   }
+  
   ASSERT_TRUE(table_page.MarkDelete(row.GetRowId(), nullptr, nullptr, nullptr));
   table_page.ApplyDelete(row.GetRowId(), nullptr, nullptr);
 }
